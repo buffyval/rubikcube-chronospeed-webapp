@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CubeFlow — Speedcubing Timer & Stats</title>
+    <!-- Font moderni da Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Sfondo animato sfocato -->
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <!-- Barra di navigazione (le altre viste le attiveremo nei prossimi step) -->
+    <nav class="navbar">
+        <div class="logo">
+            <span class="cube-icon">🧊</span>
+            <span>Cube<strong>Flow</strong></span>
+        </div>
+        <div class="nav-links">
+            <a href="#" class="active">Timer</a>
+            <a href="#" class="disabled" title="Disponibile nella Fase 2">Statistiche</a>
+            <a href="#" class="disabled" title="Disponibile nella Fase 3">Eventi WCA</a>
+            <a href="#" class="disabled" title="Disponibile nella Fase 3">AI Coach</a>
+        </div>
+        <button class="btn-login">Accedi</button>
+    </nav>
+
+    <!-- Area Centrale -->
+    <main class="container">
+        <!-- Selettore Modalità Scramble -->
+        <div class="mode-selector">
+            <button class="mode-btn active" data-mode="auto">⚡ Scramble Generato</button>
+            <button class="mode-btn" data-mode="manual">✍️ Inserisci Scramble</button>
+            <button class="mode-btn" data-mode="free">⏱️ Timer Libero</button>
+        </div>
+
+        <!-- Box Scramble -->
+        <div class="scramble-card" id="scramble-box">
+            <div id="auto-scramble-view" class="scramble-view">
+                <p id="scramble-text" class="scramble-sequence">Generazione scramble...</p>
+                <button id="btn-new-scramble" class="btn-icon" title="Nuovo scramble">↻ Nuovo</button>
+            </div>
+
+            <div id="manual-scramble-view" class="scramble-view hidden">
+                <input type="text" id="manual-input" placeholder="Es: R U R' U' F2 D L' B2..." autocomplete="off">
+            </div>
+
+            <div id="free-scramble-view" class="scramble-view hidden">
+                <p class="free-label">Modalità libera attiva — Nessuno scramble richiesto</p>
+            </div>
+        </div>
+
+        <!-- Cronometro Principale -->
+        <section class="timer-section" id="timer-touch-area">
+            <div id="timer-display" class="timer-digits">0.00</div>
+            <p id="timer-hint" class="timer-hint">
+                Tieni premuta la <kbd>BARRA SPAZIATRICE</kbd> (o tocca il timer) fino al verde, poi rilascia
+            </p>
+        </section>
+
+        <!-- Barra Statistiche Rapide della Sessione -->
+        <section class="stats-bar">
+            <div class="stat-card">
+                <span class="stat-label">Ultimo</span>
+                <span class="stat-value" id="stat-last">-</span>
+            </div>
+            <div class="stat-card highlight">
+                <span class="stat-label">Miglior (PB)</span>
+                <span class="stat-value" id="stat-pb">-</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Ao5 (Media 5)</span>
+                <span class="stat-value" id="stat-ao5">-</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Risoluzioni</span>
+                <span class="stat-value" id="stat-count">0</span>
+            </div>
+        </section>
+
+        <!-- Lista Tempi della Sessione Corrente -->
+        <section class="history-section">
+            <div class="history-header">
+                <h3>Tempi della sessione</h3>
+                <button id="btn-clear" class="btn-text-danger">Svuota</button>
+            </div>
+            <ul id="times-list" class="times-list">
+                <li class="empty-msg">Nessun tempo registrato. Fai la tua prima solve!</li>
+            </ul>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
