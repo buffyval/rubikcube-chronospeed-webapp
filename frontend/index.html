@@ -47,7 +47,8 @@
             </div>
 
             <div id="manual-scramble-view" class="scramble-view hidden">
-                <input type="text" id="manual-input" placeholder="Es: R U R' U' F2 D L' B2..." autocomplete="off">
+                <input type="text" id="manual-input" placeholder="e.g., R U R' U' F2 D L' B2..." autocomplete="off">
+                <button id="btn-open-cube-modal" class="btn-icon" title="Set cube colors visually in 3D">3D Input</button>
             </div>
 
             <div id="free-scramble-view" class="scramble-view hidden">
@@ -94,6 +95,69 @@
             </ul>
         </section>
     </main>
+
+    <!-- 3D Cube Input Modal -->
+    <div id="cube-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>3D Cube State Setup</h3>
+                <button id="btn-close-modal" class="btn-close" title="Close">×</button>
+            </div>
+            <p class="modal-subtitle">
+                Select a color below and click the tiles to match your physical cube. Drag the cube or use arrows to rotate.
+            </p>
+
+            <!-- 3D Stage & Arrow Controls -->
+            <div class="cube-stage-wrapper">
+                <button class="rotate-arrow arrow-up" data-rot="up" title="Rotate Up">▲</button>
+                <div class="cube-middle-row">
+                    <button class="rotate-arrow arrow-left" data-rot="left" title="Rotate Left">◀</button>
+                    <div class="scene" id="cube-scene">
+                        <div class="cube" id="cube-3d">
+                            <div class="face face-U" data-face="U"><span class="face-label">U (Top)</span></div>
+                            <div class="face face-F" data-face="F"><span class="face-label">F (Front)</span></div>
+                            <div class="face face-R" data-face="R"><span class="face-label">R (Right)</span></div>
+                            <div class="face face-B" data-face="B"><span class="face-label">B (Back)</span></div>
+                            <div class="face face-L" data-face="L"><span class="face-label">L (Left)</span></div>
+                            <div class="face face-D" data-face="D"><span class="face-label">D (Bottom)</span></div>
+                        </div>
+                    </div>
+                    <button class="rotate-arrow arrow-right" data-rot="right" title="Rotate Right">▶</button>
+                </div>
+                <button class="rotate-arrow arrow-down" data-rot="down" title="Rotate Down">▼</button>
+            </div>
+
+            <!-- Color Palette -->
+            <div class="color-palette" id="color-palette">
+                <button class="color-btn active" data-color="W" style="background: #ffffff;" title="White (Top)"></button>
+                <button class="color-btn" data-color="G" style="background: #10b981;" title="Green (Front)"></button>
+                <button class="color-btn" data-color="R" style="background: #ef4444;" title="Red (Right)"></button>
+                <button class="color-btn" data-color="B" style="background: #3b82f6;" title="Blue (Back)"></button>
+                <button class="color-btn" data-color="O" style="background: #f97316;" title="Orange (Left)"></button>
+                <button class="color-btn" data-color="Y" style="background: #eab308;" title="Yellow (Bottom)"></button>
+            </div>
+
+            <p id="cube-validation-msg" class="validation-msg">Click each sticker to paint the cube (9 stickers per color).</p>
+
+            <!-- Solution Output Box inside Modal -->
+            <div id="solution-box" class="solution-box hidden">
+                <div class="solution-header">
+                    <span>Solution Algorithm</span>
+                    <button id="btn-copy-solution" class="btn-copy" title="Copy moves">Copy</button>
+                </div>
+                <p id="solution-moves-text" class="solution-moves"></p>
+            </div>
+
+            <div class="modal-footer">
+                <button id="btn-reset-cube" class="btn-icon">Reset Gray</button>
+                <button id="btn-generate-solution" class="btn-primary">Generate Solution</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cube Solver Engine (Kociemba algorithm in JS) -->
+    <script src="https://cdn.jsdelivr.net/npm/cubejs@1.3.2/lib/cube.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cubejs@1.3.2/lib/solve.min.js"></script>
 
     <script src="app.js"></script>
 </body>

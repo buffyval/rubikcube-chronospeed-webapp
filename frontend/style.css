@@ -362,3 +362,298 @@ kbd {
     .stats-bar { grid-template-columns: repeat(2, 1fr); }
     .nav-links { display: none; }
 }
+
+/* =========================================================
+   3D CUBE SETUP MODAL & INTERACTIVE 3D SCENE
+   ========================================================= */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 8, 17, 0.82);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+    animation: fadeIn 0.2s ease;
+}
+
+.modal-content {
+    background: #111827;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 22px;
+    width: 100%;
+    max-width: 500px;
+    padding: 1.6rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.1rem;
+}
+
+.modal-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.7rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+.btn-close:hover { color: var(--ready-red); }
+
+.modal-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-align: center;
+    line-height: 1.4;
+}
+
+/* 3D Stage & Arrow Controls */
+.cube-stage-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0.5rem 0;
+}
+
+.cube-middle-row {
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+}
+
+.rotate-arrow {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--card-border);
+    color: var(--text-main);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+.rotate-arrow:hover {
+    background: var(--accent);
+    color: #0b0f19;
+    transform: scale(1.1);
+}
+
+/* 3D Viewport & Cube Geometry (180px cube -> half is 90px) */
+.scene {
+    width: 180px;
+    height: 180px;
+    perspective: 750px;
+    cursor: grab;
+    margin: 18px;
+}
+.scene:active { cursor: grabbing; }
+
+.cube {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transform: rotateX(-25deg) rotateY(-35deg);
+    transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.cube.dragging {
+    transition: none; /* Fluidità immediata mentre trascini col mouse */
+}
+
+.face {
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    background: #1e293b;
+    border: 3px solid #090d16;
+    border-radius: 10px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 4px;
+    padding: 5px;
+    backface-visibility: visible;
+}
+
+/* Posizionamento 3D delle 6 facce */
+.face-F { transform: rotateY(0deg) translateZ(90px); }
+.face-B { transform: rotateY(180deg) translateZ(90px); }
+.face-R { transform: rotateY(90deg) translateZ(90px); }
+.face-L { transform: rotateY(-90deg) translateZ(90px); }
+.face-U { transform: rotateX(90deg) translateZ(90px); }
+.face-D { transform: rotateX(-90deg) translateZ(90px); }
+
+/* Etichetta di riferimento sopra ogni faccia */
+.face-label {
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--accent);
+    background: rgba(11, 15, 25, 0.85);
+    padding: 1px 6px;
+    border-radius: 4px;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+/* Singoli quadratini (Stickers) */
+.sticker {
+    background-color: #64748b; /* Grigio iniziale */
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.1s ease, background-color 0.15s ease;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+.sticker:hover {
+    transform: scale(0.93);
+    filter: brightness(1.1);
+}
+
+/* Colori dei 6 lati */
+.sticker[data-color="W"] { background-color: #ffffff; }
+.sticker[data-color="G"] { background-color: #10b981; }
+.sticker[data-color="R"] { background-color: #ef4444; }
+.sticker[data-color="B"] { background-color: #3b82f6; }
+.sticker[data-color="O"] { background-color: #f97316; }
+.sticker[data-color="Y"] { background-color: #eab308; }
+
+/* Tavolozza Colori */
+.color-palette {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.5rem 0.9rem;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 999px;
+    border: 1px solid var(--card-border);
+}
+
+.color-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.color-btn:hover { transform: scale(1.12); }
+.color-btn.active {
+    border-color: #ffffff;
+    transform: scale(1.18);
+    box-shadow: 0 0 14px rgba(255, 255, 255, 0.6);
+}
+
+.validation-msg {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    text-align: center;
+    min-height: 1.2em;
+}
+.validation-msg.error { color: var(--ready-red); }
+.validation-msg.success { color: var(--ready-green); }
+
+/* Pulsanti Footer Modale */
+.modal-footer {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-top: 0.4rem;
+}
+
+.btn-primary {
+    flex: 1;
+    background: var(--accent);
+    color: #0b0f19;
+    border: none;
+    padding: 0.65rem 1.2rem;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.92rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.btn-primary:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 0 20px var(--accent-glow);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Solution Output Box inside Modal */
+.solution-box {
+    width: 100%;
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    border-radius: 14px;
+    padding: 0.9rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    animation: fadeIn 0.2s ease;
+}
+
+.solution-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--ready-green);
+    font-weight: 700;
+}
+
+.btn-copy {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: var(--ready-green);
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.btn-copy:hover {
+    background: var(--ready-green);
+    color: #0b0f19;
+}
+
+.solution-moves {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-main);
+    word-spacing: 4px;
+    line-height: 1.5;
+    user-select: text;
+}

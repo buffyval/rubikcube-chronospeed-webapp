@@ -224,3 +224,219 @@ btnClear.addEventListener('click', () => {
 
 // Avvio iniziale
 generateScramble();
+
+// =========================================================
+// 4. 3D INTERACTIVE CUBE MODAL & SOLVER (ENGLISH UI)
+// =========================================================
+
+const cubeModal = document.getElementById('cube-modal');
+const btnOpenCubeModal = document.getElementById('btn-open-cube-modal');
+const btnCloseModal = document.getElementById('btn-close-modal');
+const cube3d = document.getElementById('cube-3d');
+const cubeScene = document.getElementById('cube-scene');
+const rotateArrows = document.querySelectorAll('.rotate-arrow');
+const colorButtons = document.querySelectorAll('.color-btn');
+const btnResetCube = document.getElementById('btn-reset-cube');
+const btnGenerateSolution = document.getElementById('btn-generate-solution');
+const validationMsg = document.getElementById('cube-validation-msg');
+const solutionBox = document.getElementById('solution-box');
+const solutionMovesText = document.getElementById('solution-moves-text');
+const btnCopySolution = document.getElementById('btn-copy-solution');
+
+let selectedColor = 'W';
+let rotX = -25;
+let rotY = -35;
+let isDragging = false;
+let startDragX = 0;
+let startDragY = 0;
+let solverReady = false;
+
+// Inizializza le tabelle del risolutore in background
+if (typeof Cube !== 'undefined') {
+    setTimeout(() => {
+        Cube.initSolver();
+        solverReady = true;
+    }, 100);
+}
+
+// Genera dinamicamente i 9 quadratini (sticker) per ciascuna delle 6 facce
+const faceElements = document.querySelectorAll('.face');
+faceElements.forEach(faceEl => {
+    const faceCode = faceEl.dataset.face;
+    for (let i = 0; i < 9; i++) {
+        const sticker = document.createElement('div');
+        sticker.className = 'sticker';
+        sticker.dataset.face = faceCode;
+        sticker.dataset.index = i;
+        sticker.dataset.color = 'GRAY';
+
+        sticker.addEventListener('click', (e) => {
+            e.stopPropagation(); // Evita conflitti col trascinamento
+            sticker.dataset.color = selectedColor;
+            validateStickerCounts();
+        });
+
+        faceEl.appendChild(sticker);
+    }
+});
+
+// Apertura e chiusura Modale
+btnOpenCubeModal.addEventListener('click', () => {
+    btnOpenCubeModal.blur();
+    cubeModal.classList.remove('hidden');
+});
+
+btnCloseModal.addEventListener('click', () => {
+    cubeModal.classList.add('hidden');
+});
+
+cubeModal.addEventListener('click', (e) => {
+    if (e.target === cubeModal) cubeModal.classList.add('hidden');
+});
+
+// Selezione colore dalla tavolozza
+colorButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        colorButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedColor = btn.dataset.color;
+    });
+});
+
+// Aggiorna rotazione 3D del cubo
+function updateCubeRotation() {
+    cube3d.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+}
+
+// Rotazione tramite Frecce Direzionali
+rotateArrows.forEach(arrow => {
+    arrow.addEventListener('click', () => {
+        const dir = arrow.dataset.rot;
+        rotX = Math.round(rotX / 90) * 90;
+        rotY = Math.round(rotY / 90) * 90;
+
+        if (dir === 'up') rotX -= 90;
+        if (dir === 'down') rotX += 90;
+        if (dir === 'left') rotY += 90;
+        if (dir === 'right') rotY -= 90;
+        updateCubeRotation();
+    });
+});
+
+// Rotazione tramite trascinamento cursore / mouse
+cubeScene.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    startDragX = e.clientX;
+    startDragY = e.clientY;
+    cube3d.classList.add('dragging');
+});
+
+window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - startDragX;
+    const dy = e.clientY - startDragY;
+    rotY += dx * 0.6;
+    rotX -= dy * 0.6;
+    startDragX = e.clientX;
+    startDragY = e.clientY;
+    updateCubeRotation();
+});
+
+window.addEventListener('mouseup', () => {
+    if (isDragging) {
+        isDragging = false;
+        cube3d.classList.remove('dragging');
+    }
+});
+
+// Reset tutti i quadratini a Grigio
+btnResetCube.addEventListener('click', () => {
+    document.querySelectorAll('.sticker').forEach(s => s.dataset.color = 'GRAY');
+    solutionBox.classList.add('hidden');
+    validationMsg.className = 'validation-msg';
+    validationMsg.textContent = 'Cube reset. Paint all 54 stickers (9 per color).';
+});
+
+// Controllo in tempo reale del conteggio colori
+function validateStickerCounts() {
+    const counts = { W: 0, G: 0, R: 0, B: 0, O: 0, Y: 0, GRAY: 0 };
+    document.querySelectorAll('.sticker').forEach(s => {
+        counts[s.dataset.color]++;
+    });
+
+    if (counts.GRAY > 0) {
+        validationMsg.className = 'validation-msg';
+        validationMsg.textContent = `Remaining gray stickers: ${counts.GRAY}`;
+        return false;
+    }
+
+    const colorNames = { W: 'White', G: 'Green', R: 'Red', B: 'Blue', O: 'Orange', Y: 'Yellow' };
+    for (const [code, name] of Object.entries(colorNames)) {
+        if (counts[code] !== 9) {
+            validationMsg.className = 'validation-msg error';
+            validationMsg.textContent = `Invalid count: ${name} has ${counts[code]} stickers (must be 9).`;
+            return false;
+        }
+    }
+
+    validationMsg.className = 'validation-msg success';
+    validationMsg.textContent = 'All 54 stickers valid! Ready to generate solution.';
+    return true;
+}
+
+// Calcolo dell'algoritmo di risoluzione
+btnGenerateSolution.addEventListener('click', () => {
+    if (!validateStickerCounts()) return;
+
+    // I centri (indice 4 di ogni faccia) definiscono quale colore corrisponde a U, R, F, D, L, B
+    const faceOrder = ['U', 'R', 'F', 'D', 'L', 'B'];
+    const colorToFace = {};
+
+    for (const f of faceOrder) {
+        const centerSticker = document.querySelector(`.face-${f} .sticker[data-index="4"]`);
+        const centerColor = centerSticker.dataset.color;
+        if (colorToFace[centerColor]) {
+            validationMsg.className = 'validation-msg error';
+            validationMsg.textContent = 'Error: Each center piece (middle tile) must have a unique color.';
+            return;
+        }
+        colorToFace[centerColor] = f;
+    }
+
+    // Costruisce la stringa di 54 caratteri nel formato URFDLB richiesto da Kociemba
+    let stateString = '';
+    for (const f of faceOrder) {
+        const stickers = document.querySelectorAll(`.face-${f} .sticker`);
+        stickers.forEach(s => {
+            stateString += colorToFace[s.dataset.color];
+        });
+    }
+
+    try {
+        if (typeof Cube === 'undefined') {
+            throw new Error('Solver library not loaded. Check your internet connection.');
+        }
+        if (!solverReady) {
+            Cube.initSolver();
+            solverReady = true;
+        }
+        const cubeInstance = Cube.fromString(stateString);
+        const solutionMoves = cubeInstance.solve();
+
+        solutionMovesText.textContent = solutionMoves || 'Cube is already solved!';
+        solutionBox.classList.remove('hidden');
+    } catch (err) {
+        solutionBox.classList.add('hidden');
+        validationMsg.className = 'validation-msg error';
+        validationMsg.textContent = 'Impossible cube configuration! Check corner/edge colors.';
+    }
+});
+
+// Copia le mosse della soluzione negli appunti
+btnCopySolution.addEventListener('click', () => {
+    navigator.clipboard.writeText(solutionMovesText.textContent);
+    btnCopySolution.textContent = 'Copied!';
+    setTimeout(() => {
+        btnCopySolution.textContent = 'Copy';
+    }, 1500);
+});
